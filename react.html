@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React User Profiles</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .navbar {
+      background-color: #007bff;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      font-size: 1rem;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid #007bff;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .alert {
+      padding: 15px;
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    .card-img-top {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .card-body {
+      padding: 20px;
+    }
+    .card-title {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .card-text {
+      font-size: 1rem;
+      color: #555;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .col-md-4 {
+      flex: 1 1 calc(33.333% - 20px);
+      max-width: calc(33.333% - 20px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .col-md-4 {
+        flex: 1 1 calc(50% - 20px);
+        max-width: calc(50% - 20px);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .col-md-4 {
+        flex: 1 1 100%;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="mydiv"></div>
+
+  <script type="text/babel">
+    // UserList Component
+    function UserList() {
+      const [users, setUsers] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+      const [error, setError] = React.useState(null);
+
+      const fetchUsers = React.useCallback(() => {
+        setLoading(true);
+        setError(null);
+        fetch('https://randomuser.me/api/?results=999')
+          .then(response => response.json())
+          .then(data => {
+            setUsers(data.results);
+            setLoading(false);
+          })
+          .catch(err => {
+            setError(err.message);
+            setLoading(false);
+          });
+      }, []);
+
+      React.useEffect(() => {
+        fetchUsers();
+      }, [fetchUsers]);
+
+      return (
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <button className="btn" onClick={fetchUsers}>
+              Refresh
+            </button>
+          </div>
+          {loading && <div style={{ textAlign: 'center' }}><div className="spinner"></div></div>}
+          {error && <div className="alert">Error: {error}</div>}
+          <div className="row">
+            {users.map(user => (
+              <div className="col-md-4" key={user.login.uuid}>
+                <div className="card">
+                  <img src={user.picture.large} className="card-img-top" alt={`${user.name.first} ${user.name.last}`} />
+                  <div className="card-body">
+                    <h5 className="card-title">{`${user.name.first} ${user.name.last}`}</h5>
+                    <p className="card-text">
+                      <strong>Email:</strong> {user.email}
+                      <br />
+                      <strong>Location:</strong> {`${user.location.city}, ${user.location.country}`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // Main App Component
+    function App() {
+      return (
+        <div>
+          <nav className="navbar">
+            <a href="#">User Profiles</a>
+          </nav>
+          <UserList />
+        </div>
+      );
+    }
+
+    // Render the App component
+    const container = document.getElementById('mydiv');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
+  </script>
+</body>
+</html>
